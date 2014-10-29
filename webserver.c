@@ -33,12 +33,10 @@ int main(int argc, char *argv[])
      struct sockaddr_in serv_addr, cli_addr;
      struct sigaction sa;          // for signal SIGCHLD
      
-     printf("1232131231");
      if (argc < 2) {
          fprintf(stderr,"ERROR, no port provided\n");
          exit(1);
      }
-     printf("1231231");
      sockfd = socket(AF_INET, SOCK_STREAM, 0);
      if (sockfd < 0) 
         error("ERROR opening socket");
@@ -95,23 +93,20 @@ int main(int argc, char *argv[])
 void getFileName(char* input,char* fn)
 {
 	char* fntmp,*tmp = input;
-	/* Pinpoint the starting poing */
 	while (*tmp != ' '){
 		tmp += 1;
 	}
 	tmp += 2;
-	if (*tmp == '\0')
-	{
-		strcpy(fn, "index.html");
-		return ;
-	}
+	fntmp = fn;
 	while (*tmp != ' ')
 	{
-		*fn = *tmp;
+		*fntmp = *tmp;
 		tmp   += 1;
-		fn += 1;
+		fntmp += 1;
 	}
 	*fntmp = '\0';
+	if (*fn == '\0')
+		strcpy(fn, "index.html");
 }
 int sameStr(char* s1,char* s2)
 {
@@ -122,10 +117,13 @@ enum content_type getContentType(char *fileName)
 {
 	char ext[10];
 	char *ext_tmp;
-
 	ext_tmp = ext;
-	while (*fileName != '.')
+	while (*fileName != '.'){
+		if (*fileName == '\0')
+			return OTHER;
 		fileName++;
+	}
+
 	fileName++;
 	while (*fileName != '\0') {
 		*ext_tmp = *fileName;
@@ -147,7 +145,7 @@ enum content_type getContentType(char *fileName)
 void buildHeader(char* header,enum content_type ctype)
 {
    time_t mytime = time(NULL);
-   header = "HTTP/1.0 200 OK\n\n";
+   sprintf(header, "HTTP/1.0 200 OK\nServer:Gabby\n\n");
 /*"Connection: close\n";*/
 /*   char *contentLength = "Content-Length: ";*/
 /*   char *contentType = "Content-Type: ";*/
@@ -163,13 +161,14 @@ void output_header_and_targeted_file_to_sock(int sock, int resource, char* heade
 {
     int n;
     char data_to_send[1024];
-    int rcvd, fd, bytes_read;
+    int bytes_read;
 
-    n = send(sock, header, sizeof(header), 0);
+    printf("resource%d",resource);
+    n = send(sock, header, strlen(header), 0);
     if (n < 0) error("ERROR writing header to socket");
-
+    printf("\nheader %s\n",header);
     while ( (bytes_read=read(resource, data_to_send, 1024))>0 )
-        write(sock, data_to_send, bytes_read);
+       n = write(sock, data_to_send, bytes_read);
     if (n < 0) error("ERROR writing filename to socket");
 }
 
@@ -178,7 +177,7 @@ void output_dne(int sock, char* fileName)
     char str[50];
     int n;
     sprintf(str, "The file %s does not exist\n", fileName);
-    n = write(sock, str, 23);
+    n = write(sock, str, strlen(str));
     if (n < 0) error("ERROR writing to socket");
 }
 
@@ -190,18 +189,27 @@ void dostuff (int sock)
    enum  content_type ctype;  // Make some int standing for some types
    char fileName[256];
    int resource;
-   printf("12321312");
    bzero(buffer,1024);
    n = read(sock,buffer,1024);  
    if (n < 0) error("ERROR reading from socket");
+   printf("Here is the message: %s\n",buffer);
 
    getFileName(buffer,fileName);
    printf("Targeted file: %s\n",fileName);
    ctype = getContentType(fileName);
    printf("Type: %d\n", ctype);
+    char data_to_send[1024];
+    int bytes_read;
+/*if ((resource = open(fileName, O_RDONLY)) > 0)*/
+/*{*/
+/*    send(sock, "HTTP/1.0 200 OK\n\n", 17, 0);*/
+/*    while ( (bytes_read=read(resource, data_to_send, 1024))>0 )*/
+/*        */
+/*        write(sock, data_to_send, bytes_read);*/
+/*}*/
    if ((resource = open(fileName, O_RDONLY)) > 0){
 	buildHeader(header, ctype);
-	printf("Header: %d\n", ctype);
+	printf("Response Header: %s\n", header);
 	output_header_and_targeted_file_to_sock(sock, resource, header, fileName);
    }
    else{
