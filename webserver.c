@@ -26,18 +26,19 @@ void error(char *msg)
     perror(msg);
     exit(1);
 }
-
 int main(int argc, char *argv[])
 {
      int sockfd, newsockfd, portno, pid;
      socklen_t clilen;
      struct sockaddr_in serv_addr, cli_addr;
      struct sigaction sa;          // for signal SIGCHLD
-
+     
+     printf("1232131231");
      if (argc < 2) {
          fprintf(stderr,"ERROR, no port provided\n");
          exit(1);
      }
+     printf("1231231");
      sockfd = socket(AF_INET, SOCK_STREAM, 0);
      if (sockfd < 0) 
         error("ERROR opening socket");
@@ -190,7 +191,7 @@ void dostuff (int sock)
    enum  content_type ctype;  // Make some int standing for some types
    char fileName[256];
    int resource;
-
+   printf("12321312");
    bzero(buffer,1024);
    n = read(sock,buffer,1024);  
    if (n < 0) error("ERROR reading from socket");
