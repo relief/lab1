@@ -33,11 +33,13 @@ int main(int argc, char *argv[])
      socklen_t clilen;
      struct sockaddr_in serv_addr, cli_addr;
      struct sigaction sa;          // for signal SIGCHLD
-
+     
+     printf("1232131231");
      if (argc < 2) {
          fprintf(stderr,"ERROR, no port provided\n");
          exit(1);
      }
+     printf("1231231");
      sockfd = socket(AF_INET, SOCK_STREAM, 0);
      if (sockfd < 0) 
         error("ERROR opening socket");
@@ -175,8 +177,8 @@ void output_header_and_targeted_file_to_sock(int sock, int resource, char* heade
 void output_dne(int sock, char* fileName)
 {
     char str[50];
-
-    sprintf(str, "The file %s does not exist\n," fileName);
+    int n;
+    sprintf(str, "The file %s does not exist\n", fileName);
     n = write(sock, str, 23);
     if (n < 0) error("ERROR writing to socket");
 }
@@ -189,7 +191,7 @@ void dostuff (int sock)
    enum  content_type ctype;  // Make some int standing for some types
    char fileName[256];
    int resource;
-
+   printf("12321312");
    bzero(buffer,1024);
    n = read(sock,buffer,1024);  
    if (n < 0) error("ERROR reading from socket");
