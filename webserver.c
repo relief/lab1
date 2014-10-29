@@ -175,8 +175,9 @@ void output_header_and_targeted_file_to_sock(int sock, int resource, char* heade
 void output_dne(int sock, char* fileName)
 {
     char str[50];
-
-    sprintf(str, "The file %s does not exist\n," fileName);
+    int n;
+    
+    sprintf(str, "The file %s does not exist\n", fileName);
     n = write(sock, str, 23);
     if (n < 0) error("ERROR writing to socket");
 }
