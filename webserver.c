@@ -14,6 +14,7 @@
 #include <string.h>
 #include <fcntl.h>
 
+enum content_type {HTML = 0, JPEG = 1, GIF = 2, PNG = 3, PDF = 4, OTHER = -1};
 void sigchld_handler(int s)
 {
     while(waitpid(-1, NULL, WNOHANG) > 0);
@@ -154,61 +155,50 @@ void buildHeader(char* header)
    printf("Header: %s", header);
 }
 
-void output_header_and_targeted_file_to_sock(int sock, char* header, char* fileName)
+void output_header_and_targeted_file_to_sock(int sock, int resource, char* header, char* fileName)
 {
-   int n;
+    int n;
+    char data_to_send[1024];
+    int rcvd, fd, bytes_read;
 
-   n = write(sock,header,1000);
-   if (n < 0) error("ERROR writing header to socket");
-   n = write(sock,fileName,256);
-   if (n < 0) error("ERROR writing filename to socket");
+    n = send(sock, "HTTP/1.0 200 OK\n\n", 17, 0);
+    if (n < 0) error("ERROR writing header to socket");
+
+    while ( (bytes_read=read(resource, data_to_send, 1024))>0 )
+        write(sock, data_to_send, bytes_read);
+    if (n < 0) error("ERROR writing filename to socket");
 }
 void dostuff (int sock)
 {
    int n;
    char buffer[256];
+   enum  content_type ctype;  // Make some int standing for some types
+   char fileName[256];
+   int resource;
 
    bzero(buffer,256);
-   n = read(sock,buffer,255);
+   n = read(sock,buffer,255);  
    if (n < 0) error("ERROR reading from socket");
 
-   int content_type;  // Make some int standing for some types
-   char fileName[256];
-  // char header[1000];
    getFileName(buffer,fileName);
    printf("Targeted file: %s\n",fileName);
-   enum content_type ctype = getContentType(fileName);
-   if (ctype == -1) {
-      error("ERROR requested filetype not supported");
-      printf("Filetype not supported\n");
-   }
+   ctype = getContentType(fileName);
    printf("Type: %d\n", ctype);
+   if ((resource = open(fileName, O_RDONLY)) > 0){
+	buildHeader(header, ctype);
+	printf("Header: %d\n", ctype);
+	output_header_and_targeted_file_to_sock(sock, resource, header, fileName);
+   }
+   else{
+	output_dne(sock,fileName);
+   }
+/*   if (ctype == -1) {*/
+/*      error("ERROR requested filetype not supported");*/
+/*      printf("Filetype not supported\n");*/
+/*   }*/
 
-   buildHeader(header, ctype);
-   printf("Header: %d\n", ctype);
-
-   output_header_and_targeted_file_to_sock(sock, header, fileName);
-
-
-   int resource;
-   char buff[100];
-
-char data_to_send[1024];
-int rcvd, fd, bytes_read;
-
-if ((resource = open(fileName, O_RDONLY)) > 0)
-{
-    printf("output resource\n");
-    send(sock, "HTTP/1.0 200 OK\n\n", 17, 0);
-    while ( (bytes_read=read(resource, data_to_send, 1024))>0 )
-        
-        write(sock, data_to_send, bytes_read);
-}
-else
-	n = write(sock, "HTTP/1.0 400 Bad Request\n", 25);
-
-   if (n < 0) error("ERROR writing to socket");
-shutdown (sock, SHUT_RDWR);         //All further send and recieve 
-close(sock);
+   // if (n < 0) error("ERROR writing to socket");
+    shutdown(sock, SHUT_RDWR);         //All further send and recieve 
+    close(sock);
     return ;
 }
