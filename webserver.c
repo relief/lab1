@@ -161,13 +161,23 @@ void output_header_and_targeted_file_to_sock(int sock, int resource, char* heade
     char data_to_send[1024];
     int rcvd, fd, bytes_read;
 
-    n = send(sock, "HTTP/1.0 200 OK\n\n", 17, 0);
+    n = write(sock, "HTTP/1.0 200 OK\n\n", 17);
     if (n < 0) error("ERROR writing header to socket");
 
     while ( (bytes_read=read(resource, data_to_send, 1024))>0 )
         write(sock, data_to_send, bytes_read);
     if (n < 0) error("ERROR writing filename to socket");
 }
+
+void output_dne(int sock, char* fileName)
+{
+    char str[50];
+
+    sprintf(str, "The file %s does not exist\n," fileName);
+    n = write(sock, str, 23);
+    if (n < 0) error("ERROR writing to socket");
+}
+
 void dostuff (int sock)
 {
    int n;
@@ -190,7 +200,7 @@ void dostuff (int sock)
 	output_header_and_targeted_file_to_sock(sock, resource, header, fileName);
    }
    else{
-	output_dne(sock,fileName);
+	output_dne(sock, fileName);
    }
 /*   if (ctype == -1) {*/
 /*      error("ERROR requested filetype not supported");*/
