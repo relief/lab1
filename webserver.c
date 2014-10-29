@@ -176,6 +176,7 @@ void output_dne(int sock, char* fileName)
 {
     char str[50];
     int n;
+    
     sprintf(str, "The file %s does not exist\n", fileName);
     n = write(sock, str, strlen(str));
     if (n < 0) error("ERROR writing to socket");
