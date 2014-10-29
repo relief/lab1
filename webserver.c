@@ -14,7 +14,9 @@
 #include <string.h>
 #include <fcntl.h>
 
+/* All the content types this server are dealing with */
 enum content_type {HTML = 0, JPEG = 1, GIF = 2, PNG = 3, PDF = 4, CSS = 5, JS = 6, BMP = 7, OTHER = -1};
+
 void sigchld_handler(int s)
 {
     while(waitpid(-1, NULL, WNOHANG) > 0);
@@ -36,7 +38,8 @@ int main(int argc, char *argv[])
      if (argc < 2) {
          fprintf(stderr,"ERROR, no port provided\n");
          exit(1);
-     }//asfdsafs
+     }
+     /* Initialize the socket */
      sockfd = socket(AF_INET, SOCK_STREAM, 0);
      if (sockfd < 0) 
         error("ERROR opening socket");
@@ -108,6 +111,7 @@ void getFileName(char* input,char* fn)
 	if (*fn == '\0')
 		strcpy(fn, "index.html");
 }
+/* Returns whether two strings are equal */
 int sameStr(char* s1,char* s2)
 {
 	return strncmp(s1, s2, 256) == 0? 1:0;
@@ -119,7 +123,7 @@ enum content_type getContentType(char *fileName)
 	char *ext_tmp;
 	ext_tmp = ext;
 	while (*fileName != '.'){
-		if (*fileName == '\0')
+		if (*fileName == '\0')  // If fileName contains to extension, then just return
 			return OTHER;
 		fileName++;
 	}
@@ -145,7 +149,30 @@ enum content_type getContentType(char *fileName)
 void buildHeader(char* header,enum content_type ctype)
 {
    time_t mytime = time(NULL);
-   sprintf(header, "HTTP/1.0 200 OK\nServer:Gabby\n\n");
+   char* c_string;
+
+ time_t current_time;
+    char* c_time_string;
+ 
+    /* Obtain current time as seconds elapsed since the Epoch. */
+    current_time = time(NULL);
+ 
+    if (current_time == ((time_t)-1))
+    {
+        (void) fprintf(stderr, "Failure to compute the current time.");
+    }
+ 
+    /* Convert to local time format. */
+    c_time_string = (char *)ctime(&current_time);
+ 
+    if (c_time_string == NULL)
+    {
+        (void) fprintf(stderr, "Failure to convert the current time.");
+    }
+   sprintf(header, "HTTP/1.1 200 OK\nDate:%s",c_time_string);
+   strcat(header, "Server:Gabby\n");
+   strcat(header, "version:HTTP/1.1\n");
+   strcat(header, "\n");
 /*"Connection: close\n";*/
 /*   char *contentLength = "Content-Length: ";*/
 /*   char *contentType = "Content-Type: ";*/
