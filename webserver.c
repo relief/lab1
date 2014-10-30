@@ -14,7 +14,8 @@
 #include <string.h>
 #include <fcntl.h>
 
-enum content_type {HTML = 0, JPEG = 1, GIF = 2, PNG = 3, PDF = 4, CSS = 5, JS = 6, BMP = 7, OTHER = -1};
+enum content_type {HTML = 0, JPEG = 1, GIF = 2, PNG = 3, PDF = 4, CSS = 5, JS = 6, BMP = 7, TXT = 8, OTHER = -1};
+
 void sigchld_handler(int s)
 {
     while(waitpid(-1, NULL, WNOHANG) > 0);
@@ -92,69 +93,95 @@ int main(int argc, char *argv[])
  *****************************************/
 void getFileName(char* input,char* fn)
 {
-	char* fntmp,*tmp = input;
-	while (*tmp != ' '){
-		tmp += 1;
-	}
-	tmp += 2;
-	fntmp = fn;
-	while (*tmp != ' ')
-	{
-		*fntmp = *tmp;
-		tmp   += 1;
-		fntmp += 1;
-	}
-	*fntmp = '\0';
-	if (*fn == '\0')
-		strcpy(fn, "index.html");
+    char* fntmp,*tmp = input;
+  	while (*tmp != ' '){
+  		tmp += 1;
+  	}
+  	tmp += 2;
+  	fntmp = fn;
+  	
+    while (*tmp != ' ')
+  	{
+  		*fntmp = *tmp;
+  		tmp   += 1;
+  		fntmp += 1;
+  	}
+  	*fntmp = '\0';
+  	
+    //if no file is specified
+    if (*fn == '\0')
+  		strcpy(fn, "index.html");
 }
+
 int sameStr(char* s1,char* s2)
 {
-	return strncmp(s1, s2, 256) == 0? 1:0;
+	 return strncmp(s1, s2, 256) == 0? 1:0;
 }
+
 /* Returns the content type of the file based on the filename given */
 enum content_type getContentType(char *fileName)
 {
-	char ext[10];
-	char *ext_tmp;
-	ext_tmp = ext;
-	while (*fileName != '.'){
-		if (*fileName == '\0')
-			return OTHER;
-		fileName++;
-	}
+  	char ext[10];
+  	char *ext_tmp;
+  	ext_tmp = ext;
+  	while (*fileName != '.'){
+  		if (*fileName == '\0')
+  			return OTHER;
+  		fileName++;
+  	}
+  	fileName++;
 
-	fileName++;
-	while (*fileName != '\0') {
-		*ext_tmp = *fileName;
-		ext_tmp++;
-		fileName++;
-	}
-	*ext_tmp = '\0';
-	printf("The extension is: %s\n",ext);
+  	while (*fileName != '\0') {
+  		*ext_tmp = *fileName;
+  		ext_tmp++;
+  		fileName++;
+  	}
+  	*ext_tmp = '\0';
+  	printf("The extension is: %s\n",ext);
 
-	if (sameStr(ext,"html"))	return HTML;
-	if (sameStr(ext,"css"))		return CSS;
-	if (sameStr(ext,"js"))		return JS;
-	if (sameStr(ext,"jpg"))		return JPEG;
-	if (sameStr(ext,"png"))		return PNG;
-	if (sameStr(ext,"bmp"))		return BMP;
-	return OTHER;
+  	if (sameStr(ext,"html"))	return HTML;
+    if (sameStr(ext,"jpg"))   return JPEG;
+    if (sameStr(ext,"gif"))   return GIF;
+    if (sameStr(ext,"png"))   return PNG;
+    if (sameStr(ext,"pdf"))   return PDF;
+  	if (sameStr(ext,"css"))		return CSS;
+  	if (sameStr(ext,"js"))		return JS;
+  	if (sameStr(ext,"bmp"))		return BMP;
+    if (sameStr(ext,"txt"))   return TXT;
+  	return OTHER;
 }
 
 void buildHeader(char* header,enum content_type ctype)
 {
-   time_t mytime = time(NULL);
-   sprintf(header, "HTTP/1.0 200 OK\nServer:Gabby\n\n");
-/*"Connection: close\n";*/
-/*   char *contentLength = "Content-Length: ";*/
-/*   char *contentType = "Content-Type: ";*/
-/*   char *date = strcat("Date:",ctime(&mytime));*/
-/*   */
-/*   strcat(header, contentLength);*/
-/*   strcat(header, contentType);*/
-/*   strcat(header, date);*/
-/*   printf("Header: %s", header);*/
+    //time_t mytime = time(NULL);
+    sprintf(header, "HTTP/1.0 200 OK\n");
+    header = strcat(header,"Connection: close\n");
+
+    if (ctype == 0) 
+      header = strcat(header,"Content-Type: text/html\n");
+    else if (ctype == 1) 
+      header = strcat(header,"Content-Type: image/jpg\n");
+    else if (ctype == 2) 
+      header = strcat(header,"Content-Type: image/gif\n");
+    else if (ctype == 3) 
+      header = strcat(header,"Content-Type: image/png\n");
+    else if (ctype == 4) 
+      header = strcat(header,"Content-Type: application/pdf\n");
+    else if (ctype == 5)
+      header = strcat(header,"Content-Type: application/css\n");
+    else if (ctype == 6) 
+      header = strcat(header,"Content-Type: application/javascript\n");
+    else if (ctype == 7) 
+      header = strcat(header,"Content-Type: image/bmp\n");
+    else if (ctype == 8) 
+      header = strcat(header,"Content-Type: text/txt\n");
+    //printf("Header2: %s", header);
+
+    //char *date = strcat("Date: ",ctime(&mytime));
+    //header = strcat(header, date);
+    header = strcat(header,"Server: 127.0.0.1\n");
+    header = strcat(header,"Status: 200 OK\n");
+    header = strcat(header, "\n");
 }
 
 void output_header_and_targeted_file_to_sock(int sock, int resource, char* header, char* fileName)
@@ -184,44 +211,39 @@ void output_dne(int sock, char* fileName)
 
 void dostuff (int sock)
 {
-   int n;
-   char buffer[1024];
-   char header[1024];
-   enum  content_type ctype;  // Make some int standing for some types
-   char fileName[256];
-   int resource;
-   bzero(buffer,1024);
-   n = read(sock,buffer,1024);  
-   if (n < 0) error("ERROR reading from socket");
-   printf("Here is the message: %s\n",buffer);
+    int n;
+    char buffer[1024];
+    char header[1024];
+    enum  content_type ctype; 
+    char fileName[256];
+    int resource;
 
-   getFileName(buffer,fileName);
-   printf("Targeted file: %s\n",fileName);
-   ctype = getContentType(fileName);
-   printf("Type: %d\n", ctype);
+    bzero(buffer,1024);
+    n = read(sock,buffer,1024);  
+    if (n < 0) error("ERROR reading from socket");
+    printf("Here is the message: %s\n",buffer);
+
+    getFileName(buffer,fileName);
+    printf("Targeted file: %s\n",fileName);
+    ctype = getContentType(fileName);
+    printf("Type: %d\n", ctype);
     char data_to_send[1024];
     int bytes_read;
-/*if ((resource = open(fileName, O_RDONLY)) > 0)*/
-/*{*/
-/*    send(sock, "HTTP/1.0 200 OK\n\n", 17, 0);*/
-/*    while ( (bytes_read=read(resource, data_to_send, 1024))>0 )*/
-/*        */
-/*        write(sock, data_to_send, bytes_read);*/
-/*}*/
-   if ((resource = open(fileName, O_RDONLY)) > 0){
-	buildHeader(header, ctype);
-	printf("Response Header: %s\n", header);
-	output_header_and_targeted_file_to_sock(sock, resource, header, fileName);
-   }
-   else{
-	output_dne(sock, fileName);
-   }
+
+    //***** This needs to be changed, because right now if there's no file specified, no header is produced
+    if ((resource = open(fileName, O_RDONLY)) > 0) {
+      buildHeader(header, ctype);
+      printf("Response Header: %s\n", header);
+      output_header_and_targeted_file_to_sock(sock, resource, header, fileName);
+    }
+    else {
+      output_dne(sock, fileName);
+    }
 /*   if (ctype == -1) {*/
 /*      error("ERROR requested filetype not supported");*/
 /*      printf("Filetype not supported\n");*/
 /*   }*/
-
-   // if (n < 0) error("ERROR writing to socket");
+    // if (n < 0) error("ERROR writing to socket");
     shutdown(sock, SHUT_RDWR);         //All further send and recieve 
     close(sock);
     return ;
