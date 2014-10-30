@@ -146,35 +146,19 @@ enum content_type getContentType(char *fileName)
 	return OTHER;
 }
 
-void buildHeader(char* header,enum content_type ctype)
+void buildHeader(char* header,char* fileName, enum content_type ctype)
 {
     time_t current_time;
     char* c_time_string;
- 
-    /* Obtain current time as seconds elapsed since the Epoch. */
-    current_time = time(NULL);
- 
-    if (current_time == ((time_t)-1))
-    {
-        (void) fprintf(stderr, "Failure to compute the current time.");
-    }
- 
-    /* Convert to local time format. */
-    c_time_string = (char *)ctime(&current_time);
- 
-    if (c_time_string == NULL)
-    {
-        (void) fprintf(stderr, "Failure to convert the current time.");
-    }
-    sprintf(header, "HTTP/1.1 200 OK\nDate:%s",c_time_string);
-    strcat(header, "Server:Gabby\n");
-    strcat(header, "version:HTTP/1.1\n");
+/* HTTP header */
+    sprintf(header, "HTTP/1.1 200 OK\n");
+
+/* Content-Type */
     switch (ctype){
 	case JPEG:
 		strcat(header, "Content-Type:image/jpeg\n");
 		break;
 	case GIF:
-		strcat(header, "Content-Type:image/gif\n");
 		break;
 	case PNG:
 		strcat(header, "Content-Type:image/png\n");
@@ -190,6 +174,35 @@ void buildHeader(char* header,enum content_type ctype)
 	case HTML:
 		break;
 	}
+
+/* Date */
+    /* Obtain current time as seconds elapsed since the Epoch. */
+    current_time = time(NULL);
+ 
+    if (current_time == ((time_t)-1))
+    {
+        (void) fprintf(stderr, "Failure to compute the current time.");
+    }
+ 
+    /* Convert to local time format. */
+    c_time_string = (char *)ctime(&current_time);
+ 
+    if (c_time_string == NULL)
+    {
+        (void) fprintf(stderr, "Failure to convert the current time.");
+    }
+    sprintf(header, "%sDate:%s", header, c_time_string);
+    printf("Here!\n%s",header);
+/* Last-Modified */
+    struct stat attr;
+    stat(fileName, &attr);
+    sprintf(header, "%sLast-Modified:%s", header, (char *)ctime(&attr.st_mtime));
+    printf("Here!\n%s",header);
+/* Server */
+    strcat(header, "Server:Gabby\n");
+/* Version */
+    strcat(header, "version:HTTP/1.1\n");
+/* End of header */
     strcat(header, "\n");
 }
 
@@ -235,8 +248,8 @@ void dostuff (int sock)
    printf("Targeted file: %s\n",fileName);
    ctype = getContentType(fileName);
    printf("Type: %d\n", ctype);
-    char data_to_send[1024];
-    int bytes_read;
+   char data_to_send[1024];
+   int bytes_read;
 /*if ((resource = open(fileName, O_RDONLY)) > 0)*/
 /*{*/
 /*    send(sock, "HTTP/1.0 200 OK\n\n", 17, 0);*/
@@ -245,7 +258,7 @@ void dostuff (int sock)
 /*        write(sock, data_to_send, bytes_read);*/
 /*}*/
    if ((resource = open(fileName, O_RDONLY)) > 0){
-	buildHeader(header, ctype);
+	buildHeader(header,fileName, ctype);
 	printf("Response Header: %s\n", header);
 	output_header_and_targeted_file_to_sock(sock, resource, header, fileName);
    }
