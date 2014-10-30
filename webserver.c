@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
          fprintf(stderr,"ERROR, no port provided\n");
          exit(1);
      }
+     /* Initialize the socket */
      sockfd = socket(AF_INET, SOCK_STREAM, 0);
      if (sockfd < 0) 
         error("ERROR opening socket");
@@ -113,6 +114,7 @@ void getFileName(char* input,char* fn)
   		strcpy(fn, "index.html");
 }
 
+/* Returns whether two strings are equal */
 int sameStr(char* s1,char* s2)
 {
 	 return strncmp(s1, s2, 256) == 0? 1:0;
