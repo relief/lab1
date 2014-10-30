@@ -15,7 +15,6 @@
 #include <fcntl.h>
 
 enum content_type {HTML = 0, JPEG = 1, GIF = 2, PNG = 3, PDF = 4, CSS = 5, JS = 6, BMP = 7, TXT = 8, OTHER = -1};
-#define FILEROOT "resource/"
 
 void sigchld_handler(int s)
 {

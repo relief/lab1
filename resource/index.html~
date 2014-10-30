@@ -6,19 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="http://v3.bootcss.com/favicon.ico">
 
     <title>CS118 Lab1</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="http://v3.bootcss.com/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="http://v3.bootcss.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
-
-    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
-    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
-    <script src="./Narrow Jumbotron Template for Bootstrap_files/ie-emulation-modes-warning.js"></script>
+    <link href="jumbotron-narrow.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -48,24 +43,24 @@
       <div class="row marketing">
         <div class="col-lg-6">
           <h4>GIF</h4>
-          <a href="http://127.0.0.1:1000/test.gif">127.0.0.1:1000/test.gif</a>
+          <a href=" test.gif"> test.gif</a>
 
           <h4>JPG</h4>
-          <a href="http://127.0.0.1:1000/test.jpg">127.0.0.1:1000/test.jpg</a>
+          <a href=" test.jpg"> test.jpg</a>
 
           <h4>TXT</h4>
-          <a href="http://127.0.0.1:1000/test.txt">127.0.0.1:1000/test.txt</a>
+          <a href=" test.txt"> test.txt</a>
         </div>
 
         <div class="col-lg-6">
           <h4>CSS</h4>
-          <a href="http://127.0.0.1:1000/test.css">127.0.0.1:1000/test.css</a>
+          <a href=" test.css"> test.css</a>
 
           <h4>PNG</h4>
-          <a href="http://127.0.0.1:1000/test.png">127.0.0.1:1000/test.png</a>
+          <a href=" test.png"> test.png</a>
 
           <h4>PDF</h4>
-          <a href="http://127.0.0.1:1000/test.pdf">127.0.0.1:1000/test.pdf</a>
+          <a href=" test.pdf"> test.pdf</a>
         </div>
       </div>
 
@@ -74,10 +69,5 @@
       </div>
 
     </div> <!-- /container -->
-
-
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="./Narrow Jumbotron Template for Bootstrap_files/ie10-viewport-bug-workaround.js"></script>
-  
 
 </body></html>
