@@ -159,7 +159,6 @@ void buildHeader(char* header,char* fileName, enum content_type ctype)
     sprintf(header, "HTTP/1.1 200 OK\n");
     /* Content-Type */
     switch (ctype){
-<<<<<<< HEAD
 	case JPEG:
 		strcat(header, "Content-Type:image/jpeg\n");
 		break;
