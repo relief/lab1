@@ -148,10 +148,7 @@ enum content_type getContentType(char *fileName)
 
 void buildHeader(char* header,enum content_type ctype)
 {
-   time_t mytime = time(NULL);
-   char* c_string;
-
- time_t current_time;
+    time_t current_time;
     char* c_time_string;
  
     /* Obtain current time as seconds elapsed since the Epoch. */
@@ -169,19 +166,31 @@ void buildHeader(char* header,enum content_type ctype)
     {
         (void) fprintf(stderr, "Failure to convert the current time.");
     }
-   sprintf(header, "HTTP/1.1 200 OK\nDate:%s",c_time_string);
-   strcat(header, "Server:Gabby\n");
-   strcat(header, "version:HTTP/1.1\n");
-   strcat(header, "\n");
-/*"Connection: close\n";*/
-/*   char *contentLength = "Content-Length: ";*/
-/*   char *contentType = "Content-Type: ";*/
-/*   char *date = strcat("Date:",ctime(&mytime));*/
-/*   */
-/*   strcat(header, contentLength);*/
-/*   strcat(header, contentType);*/
-/*   strcat(header, date);*/
-/*   printf("Header: %s", header);*/
+    sprintf(header, "HTTP/1.1 200 OK\nDate:%s",c_time_string);
+    strcat(header, "Server:Gabby\n");
+    strcat(header, "version:HTTP/1.1\n");
+    switch (ctype){
+	case JPEG:
+		strcat(header, "Content-Type:image/jpeg\n");
+		break;
+	case GIF:
+		strcat(header, "Content-Type:image/gif\n");
+		break;
+	case PNG:
+		strcat(header, "Content-Type:image/png\n");
+		break;
+	case PDF:
+		strcat(header, "Content-Type:image/pdf\n");
+		break;
+	case BMP:
+		strcat(header, "Content-Type:image/bmp\n");
+		break;
+	case CSS:
+	case JS:
+	case HTML:
+		break;
+	}
+    strcat(header, "\n");
 }
 
 void output_header_and_targeted_file_to_sock(int sock, int resource, char* header, char* fileName)
