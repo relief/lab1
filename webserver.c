@@ -174,7 +174,7 @@ void buildHeader(char* header,char* fileName, enum content_type ctype)
 		strcat(header, "Content-Type:image/bmp\n");
 		break;
 	case CSS:
-		strcat(header,"Content-Type: application/css\n");
+		strcat(header,"Content-Type: text/css\n");
 		break;
 	case JS:
 		strcat(header,"Content-Type: application/javascript\n");
