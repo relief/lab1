@@ -14,6 +14,7 @@
 #include <string.h>
 #include <fcntl.h>
 
+// content type of the file supported by the server
 enum content_type {HTML = 0, JPEG = 1, GIF = 2, PNG = 3, PDF = 4, CSS = 5, JS = 6, BMP = 7, TXT = 8, OTHER = -1};
 
 void sigchld_handler(int s)
@@ -87,11 +88,7 @@ int main(int argc, char *argv[])
      return 0; /* we never get here */
 }
 
-/******** DOSTUFF() *********************
- There is a separate instance of this function 
- for each connection.  It handles all communication
- once a connnection has been established.
- *****************************************/
+/* Parses the filename requested from the client input */
 void getFileName(char* input,char* fn)
 {
 	char* fntmp,*tmp = input;
@@ -112,7 +109,7 @@ void getFileName(char* input,char* fn)
 		strcpy(fn, "index.html");
 }
 
-/* Returns whether two strings are equal */
+/* Helper method: returns whether two strings are equal */
 int sameStr(char* s1,char* s2)
 {
 	 return strncmp(s1, s2, 256) == 0? 1:0;
@@ -138,7 +135,8 @@ enum content_type getContentType(char *fileName)
 	}
 	*ext_tmp = '\0';
 	printf("File extension is: %s\n",ext);
-/* Check the corresponding file extension */
+
+  /* Returns the corresponding file extension */
 	if (sameStr(ext,"html"))	return HTML;
 	if (sameStr(ext,"jpg"))		return JPEG;
 	if (sameStr(ext,"gif"))		return GIF;
@@ -151,18 +149,22 @@ enum content_type getContentType(char *fileName)
   	return OTHER;
 }
 
+/* Builds a header into the header variable using information about the file (fileName and ctype)
+   and date information */
 void buildHeader(char* header,char* fileName, enum content_type ctype)
 {
     time_t current_time;
     char* c_time_string;
-/* HTTP header */
+    /* HTTP header */
     sprintf(header, "HTTP/1.1 200 OK\n");
-/* Content-Type */
+    /* Content-Type */
     switch (ctype){
+<<<<<<< HEAD
 	case JPEG:
 		strcat(header, "Content-Type:image/jpeg\n");
 		break;
 	case GIF:
+		strcat(header, "Content-Type: image/gif\n");
 		break;
 	case PNG:
 		strcat(header, "Content-Type:image/png\n");
@@ -177,7 +179,7 @@ void buildHeader(char* header,char* fileName, enum content_type ctype)
 		strcat(header,"Content-Type: text/css\n");
 		break;
 	case JS:
-		strcat(header,"Content-Type: application/javascript\n");
+		strcat(header,"Content-Type: text/javascript\n");
 		break;
 	case HTML:
 		strcat(header,"Content-Type: text/html\n");
@@ -203,22 +205,24 @@ void buildHeader(char* header,char* fileName, enum content_type ctype)
 
 }
 
+/* Sends the header and targeted file to the client socket */
 void output_header_and_targeted_file_to_sock(int sock, int resource, char* header, char* fileName)
 {
     int n;
     char data_to_send[1024];
     int bytes_read;
 
-/*Output header */
+    /*Output header */
     n = send(sock, header, strlen(header), 0);
     if (n < 0) error("ERROR writing header to socket");
 
-/*Output requested file */
+    /*Output requested file */
     while ( (bytes_read=read(resource, data_to_send, 1024))>0 )
        n = write(sock, data_to_send, bytes_read);
     if (n < 0) error("ERROR writing filename to socket");
 }
-/* Content to output when requested file doesn't exist */
+
+/* Output an error when requested file doesn't exist */
 void output_dne(int sock, char* fileName)
 {
     char str[50];
@@ -229,12 +233,17 @@ void output_dne(int sock, char* fileName)
     if (n < 0) error("ERROR writing to socket");
 }
 
+/******** DOSTUFF() *********************
+ There is a separate instance of this function 
+ for each connection.  It handles all communication
+ once a connnection has been established.
+ *****************************************/
 void dostuff (int sock)
 {
     int n;
     char buffer[1024];
     char header[1024];
-    enum  content_type ctype; 
+    enum content_type ctype; 
     char fileName[256];
     char filePath[256];
     int resource;
@@ -242,28 +251,31 @@ void dostuff (int sock)
     bzero(buffer,1024);
     n = read(sock,buffer,1024);  
     if (n < 0) error("ERROR reading from socket");
+
     printf("--------------------------Start of a new request---------------------------\n");
     printf("Here is the message from the client: \n%s",buffer);
-/* get file name */
+    /* get file name */
     getFileName(buffer,fileName);
     printf("Targeted file name: %s\n",fileName);
-/* get file path in the server */
+    /* get file path in the server */
     sprintf(filePath, "resource/%s",fileName);
     printf("Targeted file path in the server: %s\n",filePath);
-/* get file extension */
+    /* get file extension */
     ctype = getContentType(fileName);
 
-/* Check whether the requested file exists or not and behave correspondingly */
+    /* Check whether the requested file exists or not. If the file does not exist, print out an error */
     if ((resource = open(filePath, O_RDONLY)) > 0){
-	buildHeader(header,fileName, ctype);
-	printf("\nFile exists, therefore the following respond header will be sent: \n%s",header);
-	output_header_and_targeted_file_to_sock(sock, resource, header, filePath);
+    	buildHeader(header,fileName, ctype);
+    	printf("\nFile exists, therefore the following respond header will be sent: \n%s",header);
+    	output_header_and_targeted_file_to_sock(sock, resource, header, filePath);
     }
     else{
-	printf("\nFile doesn't exist! \n");
-	output_dne(sock, fileName);
+    	printf("\nFile doesn't exist! \n");
+    	output_dne(sock, fileName);
     }
-    shutdown(sock, SHUT_RDWR);         //All further send and recieve 
+
+    /* Shuts down and closes the socket */
+    shutdown(sock, SHUT_RDWR);
     close(sock);
     return ;
 }
