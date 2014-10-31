@@ -4,6 +4,8 @@ DEPS = # header file
 OBJ = webserver.o
 OBJ2 = nonblocking.o
 
+all: webserver nonblocking
+
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
@@ -12,5 +14,3 @@ webserver: $(OBJ)
 
 nonblocking: $(OBJ2)
 	$(CC) -o $@ $^ $(CFLAGS)
-
-
