@@ -147,7 +147,7 @@ int main(int argc, char** argv)
                 break;  
             }  
         }
-        printf("client amount: %d\n", conn_amount);  
+//        printf("client amount: %d\n", conn_amount);  
     }
     for (i = 0; i < MAX_CLIENT_NUM; i++) {  
         if (fd_A[i] != 0) {  
@@ -231,19 +231,19 @@ void buildHeader(char* header,char* fileName, enum content_type ctype)
     /* Content-Type */
     switch (ctype){
 	case JPEG:
-		strcat(header, "Content-Type:image/jpeg\n");
+		strcat(header, "Content-Type: image/jpeg\n");
 		break;
 	case GIF:
 		strcat(header, "Content-Type: image/gif\n");
 		break;
 	case PNG:
-		strcat(header, "Content-Type:image/png\n");
+		strcat(header, "Content-Type: image/png\n");
 		break;
 	case PDF:
 		strcat(header,"Content-Type: application/pdf\n");
 		break;
 	case BMP:
-		strcat(header, "Content-Type:image/bmp\n");
+		strcat(header, "Content-Type: image/bmp\n");
 		break;
 	case CSS:
 		strcat(header,"Content-Type: text/css\n");
@@ -261,16 +261,16 @@ void buildHeader(char* header,char* fileName, enum content_type ctype)
 /* Date */
 	current_time = time(NULL);
 	c_time_string = (char *)ctime(&current_time);
-	sprintf(header, "%sDate:%s", header, c_time_string);
+	sprintf(header, "%sDate: %s", header, c_time_string);
 /* Last-Modified */
 	struct stat attr;
 	stat(fileName, &attr);
-	sprintf(header, "%sLast-Modified:%s", header, (char *)ctime(&attr.st_mtime));
+	sprintf(header, "%sLast-Modified: %s", header, (char *)ctime(&attr.st_mtime));
 /* Server */
-	strcat(header, "Server:Gabby\n");
+	strcat(header, "Server: Gabby\n");
 /* Version */
-	strcat(header, "version:HTTP/1.1\n");
-	strcat(header, "Connection:close\n");
+	strcat(header, "Version: HTTP/1.1\n");
+	strcat(header, "Connection: close\n");
 /* End of header */
 	strcat(header, "\n");
 
