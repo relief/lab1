@@ -15,7 +15,7 @@
 #include <fcntl.h>
 
 // content type of the file supported by the server
-enum content_type {HTML = 0, JPEG = 1, GIF = 2, PNG = 3, PDF = 4, CSS = 5, JS = 6, BMP = 7, TXT = 8, OTHER = -1};
+enum content_type {HTML = 0, JPEG = 1, GIF = 2, PNG = 3, PDF = 4, CSS = 5, JS = 6, BMP = 7, TXT = 8, MP3 = 9, MP4 = 10, OTHER = -1};
 
 void sigchld_handler(int s)
 {
@@ -146,6 +146,8 @@ enum content_type getContentType(char *fileName)
 	if (sameStr(ext,"js"))		return JS;
 	if (sameStr(ext,"bmp"))		return BMP;
 	if (sameStr(ext,"txt"))		return TXT;
+	if (sameStr(ext,"mp3"))		return MP3;
+	if (sameStr(ext,"mp4"))		return MP4;
   	return OTHER;
 }
 
@@ -160,19 +162,19 @@ void buildHeader(char* header,char* fileName, enum content_type ctype)
     /* Content-Type */
     switch (ctype){
 	case JPEG:
-		strcat(header, "Content-Type:image/jpeg\n");
+		strcat(header, "Content-Type: image/jpeg\n");
 		break;
 	case GIF:
 		strcat(header, "Content-Type: image/gif\n");
 		break;
 	case PNG:
-		strcat(header, "Content-Type:image/png\n");
+		strcat(header, "Content-Type: image/png\n");
 		break;
 	case PDF:
 		strcat(header,"Content-Type: application/pdf\n");
 		break;
 	case BMP:
-		strcat(header, "Content-Type:image/bmp\n");
+		strcat(header, "Content-Type: image/bmp\n");
 		break;
 	case CSS:
 		strcat(header,"Content-Type: text/css\n");
@@ -186,19 +188,25 @@ void buildHeader(char* header,char* fileName, enum content_type ctype)
 	case TXT:
 		strcat(header,"Content-Type: text/txt\n");
 		break;
+	case MP3:
+		strcat(header,"Content-Type: audio/mpeg\n");
+		break;
+	case MP4:
+		strcat(header,"Content-Type: video/mp4\n");
+		break;
 	}
 /* Date */
 	current_time = time(NULL);
 	c_time_string = (char *)ctime(&current_time);
-	sprintf(header, "%sDate:%s", header, c_time_string);
+	sprintf(header, "%sDate: %s", header, c_time_string);
 /* Last-Modified */
 	struct stat attr;
 	stat(fileName, &attr);
-	sprintf(header, "%sLast-Modified:%s", header, (char *)ctime(&attr.st_mtime));
+	sprintf(header, "%sLast-Modified: %s", header, (char *)ctime(&attr.st_mtime));
 /* Server */
-	strcat(header, "Server:Gabby\n");
+	strcat(header, "Server: Gabby\n");
 /* Version */
-	strcat(header, "version:HTTP/1.1\n");
+	strcat(header, "Version: HTTP/1.1\n");
 /* End of header */
 	strcat(header, "\n");
 
@@ -212,7 +220,7 @@ void output_header_and_targeted_file_to_sock(int sock, int resource, char* heade
     int bytes_read;
 
     /*Output header */
-    n = send(sock, header, strlen(header), 0);
+    n = write(sock, header, strlen(header));
     if (n < 0) error("ERROR writing header to socket");
 
     /*Output requested file */
@@ -227,6 +235,7 @@ void output_dne(int sock, char* fileName)
     char str[50];
     int n;
     
+    n = write(sock, "HTTP/1.1 404 Not Found", 22);
     sprintf(str, "The file %s does not exist\n", fileName);
     n = write(sock, str, strlen(str));
     if (n < 0) error("ERROR writing to socket");
@@ -265,11 +274,11 @@ void dostuff (int sock)
     /* Check whether the requested file exists or not. If the file does not exist, print out an error */
     if ((resource = open(filePath, O_RDONLY)) > 0){
     	buildHeader(header,fileName, ctype);
-    	printf("\nFile exists, therefore the following respond header will be sent: \n%s",header);
+    	printf("\nThe file exists. The following response header will be sent: \n%s",header);
     	output_header_and_targeted_file_to_sock(sock, resource, header, filePath);
     }
     else{
-    	printf("\nFile doesn't exist! \n");
+    	printf("\nThe file does not exist! \n");
     	output_dne(sock, fileName);
     }
 
